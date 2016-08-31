@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf8">
+    <title>Bajascript Sample 2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- jQuery and jQuery Mobile -->
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css" />
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>    
+    <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <script type="text/javascript" src="module://bajaScript/com/tridium/bajascript/bs.min.js"></script>
+    
+    <script type="text/javascript">
+    
+      baja.started(function() {
+      
+        function calcSetDuration(hours, minutes, seconds){
+          var secs = parseFloat((hours*3600)+(minutes*60)+seconds);
+          return secs;
+        }
+
+        var ORDs = [
+          "station:|slot:/control/ntest",
+          "station:|slot:/control/btest"
+        ];
+        var resv = new baja.BatchResolve(ORDs);
+        var sub = new baja.Subscriber();
+        
+        resv.resolve({
+          ok: function() {
+            jQuery('#ntest').html(this.get(0).getOutDisplay());
+            jQuery('#btest').html(this.get(1).getOutDisplay()); 
+            
+            this.get(0).attach("changed", function (prop, cx) {
+              if (prop.getName() === "out") {
+              jQuery('#ntest').html(this.getOutDisplay());
+              }
+            });
+       
+            this.get(1).attach("changed", function (prop, cx) {
+              if (prop.getName() === "out") {
+              jQuery('#btest').html(this.getOutDisplay());
+              }
+            });
+            
+            this.getOrd(1).get(function (point) {
+            
+                var overrideVal = baja.$("control:Override");
+                
+                
+                jQuery('#sfc_ovrSwt').click ( function() {
+                                  
+                 overrideVal.setDuration(baja.RelTime.make({seconds:calcSetDuration(jQuery('#sfc_ovrHours').val(),jQuery('#sfc_ovrMins').val(),jQuery('#sfc_ovrSecs').val())}));
+                    
+                 if(jQuery('#sfc_actSwt').prop('checked') == true){     
+                  point.active(overrideVal);  
+                 }
+                 else { point.inactive(overrideVal);} 
+       
+                });
+                 
+                jQuery('#sfc_auto').on('click', function() {
+                  point.auto()                  
+                  jQuery('#sfc_ovrMins').val("");
+                  jQuery('#sfc_ovrSecs').val("");
+                  jQuery('#sfc_ovrHours').val(""); 
+                  jQuery('#sfc_actSwt').prop("checked", false);
+                  
+                });   
+            });                     
+     
+            this.getOrd(0).get(function (point) {
+                
+                var overrideVal = baja.$("control:NumericOverride");
+                
+                jQuery('#sfvfd_ovrSwt').on('click', function() {
+                 if(jQuery.isNumeric(jQuery('#sfvfd_ovrVal').val())) { 
+                 overrideVal.setValue(jQuery('#sfvfd_ovrVal').val());
+                 overrideVal.setDuration(baja.RelTime.make({seconds:calcSetDuration(jQuery('#sfvfd_ovrHours').val(),jQuery('#sfvfd_ovrMins').val(),jQuery('#sfvfd_ovrSecs').val())}));    
+                 point.override(overrideVal);
+                                 
+                 }
+                 else {
+                   alert("Enter a numeric value, and refresh the screen");
+                 }
+                }); 
+
+                jQuery('#sfvfd_auto').on('click', function() {
+                  point.auto();
+                  jQuery('#sfvfd_ovrHours').val("");
+                  jQuery('#sfvfd_ovrMins').val("");
+                  jQuery('#sfvfd_ovrSecs').val("");
+                  jQuery('#sfvfd_ovrVal').val("");
+                });    
+            });
+     
+          },
+          fail: function(err) {},
+          subscriber: sub
+        });
+             
+      })
+          
+      baja.start();
+    
+    </script>
+    
+    <style>
+
+      h1 {font-family:Tahoma; color:blue;}
+      
+      label {font-family:Tahoma;}
+
+      #fifty {
+        background-image:url("");    
+        background-repeat:no-repeat; 
+        background-size:100% 100%; box-sizing:border-box;
+       }
+       
+       #btn {
+         margin-top:0px;
+         margin-bottom:0px;
+         opacity:0.85;
+       }
+       
+       
+       #navbar {
+         margin-top:0.75em;
+       }
+       
+       .ui-bar {
+         height: 6em;
+  text-align:center;
+       }
+       
+       .ui-bar-b {
+         opacity: 0.75;
+       }
+       
+    </style>
+</head>
+
+<body onunload="baja.stop();">
+  <div data-role="page" id="test2">
+
+    <div class="ui-bar ui-bar-a" data-role="header">
+      <h1>Dashboard</h1> 
+        <div data-role="navbar" id="navbar" class="ui-overlay-shadow">
+          <ul>
+            <li><a href="/bsWeb/test_page.html" target="_self">Test Page 1</a></li>
+            <li><a href="http://192.168.7.2/BoneHvac.html" target="_self">Bone Controller</a></li>
+         </ul>
+        </div>
+    </div>
+
+  <div data-role="content">
+  
+ <pre id="bajaScriptOut"></pre>
+
+  <div id="mainCollapsible" data-role="collapsible" data-collapsed="true">
+    <h2>Test Page 2</h2>  
+
+    <div class="ui-popup-screen ui-overlay-b ui-screen-hidden"></div>
+    <div class="ui-popup-container ui-popup-hidden ui-popup-truncate" id="btestpopup">
+      <div class="ui-popup ui-body-inherit ui-overlay-shadow ui-corner-all ui-content" id="btestPopupContent" data-role="popup" data-enhanced="true" data-overlay-theme="b" data-tolerance="10,25" data-dismissible="false">       
+        <a href="#" target="_self" data-rel="back" data-role="button" data-theme="a" data-icon="delete" data-iconpos="notext" class="ui-btn-left">Close</a>
+          <h3>Overrides</h3>  
+                 
+           <input id="sfc_ovrSwt" type="button" value="Override"></input>
+           <input id="sfc_auto" type="button" value="Auto"></input> 
+          
+          <div data-role="fieldcontain"><label for="sfc_ovrHours">Hours</label>          
+            <input id="sfc_ovrHours" type="text" data-type="number"></input>
+          </div>
+           
+          <div data-role="fieldcontain"><label for="sfc_ovrMins">Minutes</label>   
+             <input id="sfc_ovrMins" type="text" data-type="number"></input>
+          </div>
+          
+          <div data-role="fieldcontain"><label for="sfc_ovrSecs">Seconds</label>   
+             <input id="sfc_ovrSecs" type="text" data-type="number"></input>
+          </div>
+
+          <input id="sfc_actSwt" type="checkbox" data-role="flipswitch"></input>      
+      </div>
+    </div>
+
+   
+   <div class="ui-popup-screen ui-overlay-b ui-screen-hidden"></div>
+    <div class="ui-popup-container ui-popup-hidden ui-popup-truncate" id="ntestpopup">
+      <div class="ui-popup ui-body-inherit ui-overlay-shadow ui-corner-all ui-content" id="ntestPopupContent" data-role="popup" data-enhanced="true" data-overlay-theme="b" data-tolerance="10,25" data-dismissible="false">       
+        <a href="#" target="_self" data-rel="back" data-role="button" data-theme="a" data-icon="delete" data-iconpos="notext" class="ui-btn-left">Close</a>
+          <h3>Actions</h3>
+          
+            <input id="sfvfd_ovrSwt" type="button" value="Override"></input> 
+            <input id="sfvfd_auto" type="button" value="Auto"></input>   
+
+          <div data-role="fieldcontain"><label for="sfvfd_ovrHours">Hour</label>
+            <input id="sfvfd_ovrHours" type="text" data-type="number"></input> 
+          </div>
+            
+          <div data-role="fieldcontain"><label for="sfvfd_ovrMins">Minute</label>
+            <input id="sfvfd_ovrMins" type="text" data-type="number"></input> 
+          </div>
+            
+          <div data-role="fieldcontain"><label for="sfvfd_ovrSecs">Second</label>
+            <input id="sfvfd_ovrSecs" type="text" data-type="number"></input> 
+          </div>
+          
+          <div data-role="fieldcontain"><label for="sfvfd_ovrVal">Value</label>
+            <input id="sfvfd_ovrVal" type="text" data-role="number"></input>
+          </div>     
+      </div>
+    </div>
+
+ 
+  
+
+    <div data-role="collapsible" data-collapsed="true">
+      <h3>Outputs</h3>
+      <div class="ui-grid-a ui-responsive" style="margin: 40px 2px 2px 2px">
+      
+        <div class="ui-block-a">
+          <label for="btest">Boolean Writable Point</label>
+          <div id="btest" class="ui-bar ui-bar-b" style="height:60px"></div>
+          <div class="ui-bar ui-bar-a" style="height:60px">
+          <a id="btestanchor" href="#btestPopupContent"  data-transition="slide" data-rel="popup">Overrides</a>
+          </div>
+        </div>
+        
+        <div class="ui-block-b">
+          <label for="ntest">Numeric Writable Point</label>
+          <div id="ntest" class="ui-bar ui-bar-b" style="height:60px"></div>
+          <div class="ui-bar ui-bar-a" style="height:60px">
+          <a id="ntestanchor" href="#ntestPopupContent"  data-transition="slide" data-rel="popup">Overrides</a>
+          </div>
+        </div>
+        
+      </div>    
+    </div> 
+    
+    
+       
+  </div> 
+ </div>
+</div> 
+</body>
+</html>
+

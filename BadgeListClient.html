@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html lang="us">
+<head>
+
+<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Piston Ringer Badge Access</title>
+
+<link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css"/>
+<script type="text/javascript" src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+<script>
+    $(document).on("mobileinit", function()
+    {
+        $.mobile.hashListeningEnabled = false;
+        $.mobile.pushStateEnabled = false;
+    })
+</script>   
+<script type="text/javascript" src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.0/knockout-min.js"></script>     
+
+<style>
+    a{
+        text-decoration:none;
+        margin:2em;
+    }
+    button{
+    	margin:1em;
+    	padding:1em;
+    }
+    #table{
+        width:100%;
+        padding:0;
+        margin:0;
+    }
+    #add{
+        margin-top:2%;
+        background-color:#E8EFFA;
+        color:linear-gradient(to right, white, #F5F7FA);
+        background:linear-gradient(to right, #8CC5ED, #84BBE3);
+    }    
+    td{
+        background-color:white;
+        padding-top:0.5em;
+        padding-bottom:0.5em;
+        padding-left:3em;
+        padding-right:3em;
+        text-align:center;
+        font-size:large;
+    }
+    th{
+        background-color:#E8EFFA;
+        color:linear-gradient(to right, white, #F5F7FA);
+        background:linear-gradient(to right, #8CC5ED, #84BBE3);
+        padding-top:0.5em;
+        padding-bottom:0.5em;
+        padding-left:3em;
+        padding-right:3em;;        
+        font-size:3em;
+    }
+    table{
+        padding:0;
+        margin-top:2em;
+    }
+    h1{
+        margin:0.5em;
+        font-size:6em;
+    }
+</style>
+
+</head>
+<div id="table" class="ui-content">
+ 
+ <div>
+ 	<h1>Piston Ringer Employee Access List</h1>
+ </div>   
+
+<table data-role="table" class="ui-responsive table-stripe">
+    <thead>
+        <tr>
+        	<th data-priority="1">ID</th>
+        	<th data-priority="2">Badge</th>
+        	<th data-priority="3">Name</th>
+        	<th data-priority="4">Access</th>
+        	<th data-priority="5">Delete</th>
+        </tr>
+    </thead>
+    <tbody data-bind="foreach: employees">
+        <tr>
+            <td data-bind="text: _id"><b class="ui-table-cell-label"></b></td>
+            <td data-bind="text: badge"><b class="ui-table-cell-label"></b></td>
+            <td data-bind="text: name"><b class="ui-table-cell-label"></b></td>
+            <td data-bind="text: access"><b class="ui-table-cell-label"></b></td>
+            <td><b class="ui-table-cell-label"></b><a href="#" class="ui-btn ui-icon-delete ui-btn-icon-right" data-bind="click: $root.removeRecord">Remove</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<a id="add" href="#addDialog" data-transition="flip" data-rel="popup"><button>Add Employee Record</button></a>
+
+<div data-role="popup"  data-theme="b" id="addDialog">
+	<p>Name: <input id="addname" data-theme="a" data-bind="value: addName"/></p>
+	<p>Badge: <input id="addbadge" data-theme="a" data-bind="value: addBadge"/></p>
+	<p>Access: <input id="addaccess" data-theme="a" data-bind="value: addAccess"/></p>
+	<p><button data-theme="a"  data-bind="click: addRecord">Ok</button></p>
+</div>
+
+<script type="text/javascript">
+
+function Employee(data) {
+    this._id = ko.observable(data._id);
+    this.badge = ko.observable(data.badge);
+    this.name = ko.observable(data.name);
+    this.access = ko.observable(data.access);
+}
+
+function EmployeeListViewModel() {
+    // Data
+    var self = this;
+    self.employees = ko.observableArray([]);
+    self.addName = ko.observable();
+	self.addBadge = ko.observable();
+	self.addAccess = ko.observable();
+
+ // Load initial state from server, convert it to Employee instances, then populate self.employees
+    function getAll() {
+    
+        $.getJSON("http://localhost:60674/api/PistonRinger", function(allData) {
+        	var mappedEmployee = $.map(allData, function(item) { return new Employee(item) });
+        	self.employees(mappedEmployee);
+        	console.log(mappedEmployee);
+        });
+    }
+
+    getAll();
+    
+    self.removeRecord = function(employee){
+    	console.log("Remove Record..."+this.name()+"_"+this.badge()); 
+    	self.employees.remove(employee); 
+    	
+    	$.post("http://localhost:60674/api/PistonRinger/Delete/"+ this.badge());
+    }
+    self.addRecord = function(){
+
+    	var kodata = ko.toJSON({name:self.addName(), access:self.addAccess(), badge:parseInt(self.addBadge(), 10)});
+
+    	console.log("Add Record..."+self.addName()+"_"+self.addAccess()+"_"+parseInt(self.addBadge(), 10));
+    	console.log("Ajax data: "+kodata);
+
+    	$.ajax({
+    		url: "http://localhost:60674/api/PistonRinger/Insert",
+    		type:"POST",
+    		contentType:"application/json",
+    		data: kodata,
+    		dataType:"json",
+            headers:{
+                "Origin":"http://localhost:60674",
+                "Host":"localhost",
+                "Accept":"application/json"
+            },
+    		complete: function(){ 
+    		    console.log("Post complete"); 
+    		    getAll();
+        	    $('#addname').val("");
+		        $('#addbadge').val("");
+		        $('#addaccess').val("");
+		        $('#addDialog').popup("close");    		    
+    		},
+    		success: function(){ console.log("Post success...")},
+    		error: function(){ console.log("Post error")},
+    	});
+
+    }
+}
+
+ko.applyBindings(new EmployeeListViewModel());
+</script>
+</div>
+</html>
+

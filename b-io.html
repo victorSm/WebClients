@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>Open Source HVAC controller</title>
+ 
+    <!-- jQuery and jQuery Mobile -->
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.3.1/jquery.mobile-1.3.1.min.css" />
+    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.3.1/jquery.mobile-1.3.1.min.js"></script>
+    <script src="http://192.168.1.100/static/bonescript.js"></script>
+    <script type="text/javascript" src="module://bajaScript/com/tridium/bajascript/bs.min.js"></script>
+
+    <script type="text/javascript">
+    
+      baja.started(function() {
+      
+          function calcSetDuration(hours, minutes, seconds){
+          var secs = parseFloat((hours*3600)+(minutes*60)+seconds);
+          return secs;
+        }
+        
+      
+                 
+      })
+          
+      baja.start();
+    
+    </script>
+    
+
+    <!-- Code for rpc handling -->
+    <script type="text/javascript">
+
+     setTargetAddress('beaglebone.local', {
+ initialized: run
+     });
+
+     setTargetAddress('192.168.1.100', {
+ initialized: run
+     });
+     
+     function run(){
+ var b = require('bonescript');
+ var state = b.LOW;
+ var DO1 = 'P8_15';
+ var DO2 = 'P8_9';
+ var DO3 = 'P8_11';
+ var DO4 = 'P8_13';
+ 
+ b.pinMode(DO1, b.OUTPUT);
+ b.pinMode(DO2, b.OUTPUT);
+ b.pinMode(DO3, b.OUTPUT);
+ b.pinMode(DO4, b.OUTPUT);
+
+ $('#DO1_ON').on("click", function(){
+   b.digitalWrite(DO1, b.HIGH);
+   });
+ $('#DO1_OFF').on("click", function(){
+   b.digitalWrite(DO1, b.LOW);
+   });
+ 
+ $('#DO2_ON').on("click", function(){
+   b.digitalWrite(DO2, b.HIGH);
+   });
+ $('#DO2_OFF').on("click", function(){
+   b.digitalWrite(DO2, b.LOW);
+   });
+ 
+ $('#DO3_ON').on("click", function(){
+   b.digitalWrite(DO3, b.HIGH);
+   });
+ $('#DO3_OFF').on("click", function(){
+   b.digitalWrite(DO3, b.LOW);
+   });
+ 
+ $('#DO4_ON').on("click", function(){
+   b.digitalWrite(DO4, b.HIGH);
+   });
+ $('#DO4_OFF').on("click", function(){
+   b.digitalWrite(DO4, b.LOW);
+   }); 
+
+       };
+    </script>
+    
+    <style>
+    
+      #AIs .ui-slider-handle {
+ display:none;
+      }
+      
+      #AIs .ui-slider input{
+ display:none;
+      }
+      
+      #DIs {opacity:0.65;}
+      
+    </style>
+ 
+</head>
+
+<body>
+  <div data-role="page" id="page1">
+
+    <div data-theme="a" data-role="header">
+      <h1>Open HVAC</h1>
+
+        <a href="#" data-icon="gear" class="ui-btn-right">Options</a>
+        <div data-role="navbar">
+          <ul>
+     <li><a href="#">Home</a></li>
+     <li><a href="#">Profiles</a></li>
+     <li><a href="#">Red</a></li>
+     <li><a href="#">Web</a></li>
+     <li><a href="#">Networks</a></li>
+     <li><a href="#">Services</a></li> 
+        </div>
+    </div>
+
+    <div data-role="content">
+      <h3 style="margin: 10px 2px 2px 2px">Local IO</h3>
+
+      <div class="ui-grid-c ui-responsive" style="margin: 40px 2px 2px 2px">
+      <div class="ui-block-a">
+        <label for="DO1">Digital Output 1</label>
+        <select name="DO1" id="DO1" data-role="flipswitch" data-theme="b">
+          <option id="DO1_OFF" value="off">Off</option>
+   <option id="DO1_ON" value="on">On</option>
+ </select>
+      </div>
+      <div class="ui-block-b">
+        <label for="DO2">Digital Output 2</label>
+        <select name="DO2" id="DO2" data-role="flipswitch" data-theme="b">
+          <option id="DO2_OFF" value="off">Off</option>
+   <option id="DO2_ON" value="on">On</option>
+        </select>
+      </div>
+      <div class="ui-block-c">
+        <label for="DO3">Digital Output 3</label>
+        <select name="DO3" id="DO3" data-role="flipswitch" data-theme="b">
+          <option id="DO3_OFF" value="off">Off</option>
+   <option id="DO3_ON" value="on">On</option>
+        </select>
+      </div>
+      <div class="ui-block-d">
+        <label for="DO4">Digital Output 4</label>
+        <select name="DO4" id="DO4" data-role="flipswitch" data-theme="b">
+          <option id="DO4_OFF" value="off">Off</option>
+   <option id="DO4_ON" value="on">On</option>
+        </select>
+      </div>
+      </div>
+
+      <div class="ui-grid-a ui-responsive" style="margin: 40px 2px 2px 2px">
+        <div class="ui-block-a">
+        <label for="AO1">Analog Output 1 (0-10vdc)</label>
+        <input name-"AO1" id="AO1" data-track-theme="a" data-highlight="true" data-theme="d" min="0" max="10" value="9" type="range">
+        </div>  
+         <div class="ui-block-b">
+        <label for="AO1">Analog Output 1 (4-20mA)</label>
+        <input name-"AO1" id="AO1" data-track-theme="a" data-highlight="true" data-theme="d" min="4" max="20" value="9" type="range">
+        </div>     
+      </div>
+
+        <div class="ui-grid-c ui-responsive" style="margin: 40px 2px 2px 2px">
+          <div class="ui-block-a"><div class="ui-bar ui-bar-b" style="height:40px">Digital Input 1: OPEN</div></div>
+          <div class="ui-block-b"><div class="ui-bar ui-bar-b" style="height:40px">Digital Input 2: OPEN</div></div>
+          <div class="ui-block-c"><div class="ui-bar ui-bar-b" style="height:40px">Digital Input 3: OPEN</div></div>
+          <div class="ui-block-d"><div class="ui-bar ui-bar-b" style="height:40px">Digital Input 4: OPEN</div></div>
+        </div>
+
+        <div id="AIs"class="ui-grid-c ui-responsive" style="margin: 40px 2px 2px 2px">
+          <div class="ui-block-a">
+          <label for="AI1">Analog Input 0-10vdc</label>
+          <input name-"AI1" id="AI1" data-highlight="true" data-theme="a" min="0" max="10" value="9" type="range">
+          </div>
+          <div class="ui-block-b">
+          <label for="AI2">Analog Input 4-20mA</label>
+          <input name-"AI2" id="AI2" data-highlight="true" data-theme="a" min="4" max="20" value="9" type="range">
+          </div>
+   <div class="ui-block-c">
+          <label for="AI3">Thermistor F deg.</label>
+          <input name-"AI3" id="AI3" data-highlight="true" data-theme="a" min="0" max="120" value="45" type="range">
+          </div>
+   <div class="ui-block-d">
+          <label for="AI4">Humidity sensor</label>
+          <input name-"AI4" id="AI4" data-highlight="true" data-theme="a" min="0" max="100" value="9" type="range">
+          </div>
+
+      </div>
+    </div>
+  </div>
+</body>
+</html>
